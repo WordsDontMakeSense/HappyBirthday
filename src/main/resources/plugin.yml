@@ -1,0 +1,12 @@
+name: HappyBirthday
+version: '${project.version}'
+main: me.wordsdontmakesense.happybirthday.HappyBirthday
+api-version: 1.19
+commands:
+  birthday:
+    usage: /birthday
+    permission: birthday
+    aliases:
+      - happybirthday
+      - hb
+      - bday
