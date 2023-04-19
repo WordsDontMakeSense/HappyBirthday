@@ -1,5 +1,6 @@
 package me.wordsdontmakesense.happybirthday.Commands;
 
+import me.wordsdontmakesense.happybirthday.Commands.Files.Birthdays;
 import me.wordsdontmakesense.happybirthday.HappyBirthday;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -45,10 +46,11 @@ public class BirthdayCommand implements CommandExecutor {
 
     private void getBirthday(CommandSender commandSender, String name)
     {
-        if(happyBirthday.birthdaysConfig.contains(name))
+        if(Birthdays.contains(name))
         {
-            String playersBirthday = happyBirthday.birthdaysConfig.getString(name);
-            happyBirthday.sendMessage(commandSender, name + "'s birthday is " + playersBirthday, true);
+            String playersBirthday = Birthdays.getString(name);
+            String[] splitBirthday = playersBirthday.split("/");
+            happyBirthday.sendMessage(commandSender, name + "'s birthday is " + splitBirthday[0] + " " + splitBirthday[1], true);
         } else {
             happyBirthday.sendMessage(commandSender, name + "'s birthday is not set!", true);
         }
@@ -56,13 +58,17 @@ public class BirthdayCommand implements CommandExecutor {
 
     private void setBirthday(CommandSender commandSender, String playerName, int month, int day)
     {
-        happyBirthday.birthdaysConfig.set(playerName, month + "/" + day);
-        happyBirthday.sendMessage(commandSender, "Set " + playerName + "'s Birthday to " + happyBirthday.months.get(month) + " " + day + "!");
+        if(day <= happyBirthday.daysOfTheMonth.get(happyBirthday.months.get(month))) {
+            Birthdays.set(playerName, month, day);
+            happyBirthday.sendMessage(commandSender, "Set " + playerName + "'s Birthday to " + happyBirthday.months.get(month) + " " + day + "!");
+        } else {
+            happyBirthday.sendMessage(commandSender, happyBirthday.months.get(month) + " has less than " + day + " days in it!");
+        }
     }
 
     private void removeBirthday(CommandSender commandSender, String playerName)
     {
-        happyBirthday.birthdaysConfig.set(playerName, null);
+        Birthdays.remove(playerName);
         happyBirthday.sendMessage(commandSender, "Removed " + playerName + "'s birthday!");
     }
 }

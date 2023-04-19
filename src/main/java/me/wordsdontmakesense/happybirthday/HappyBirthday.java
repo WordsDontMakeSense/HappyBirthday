@@ -1,6 +1,7 @@
 package me.wordsdontmakesense.happybirthday;
 
 import me.wordsdontmakesense.happybirthday.Commands.BirthdayCommand;
+import me.wordsdontmakesense.happybirthday.Commands.Files.Birthdays;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -16,22 +17,19 @@ import java.util.HashMap;
 public final class HappyBirthday extends JavaPlugin {
     public static HashMap<Integer, String> months = new HashMap<>();
     public static HashMap<String, Integer> daysOfTheMonth = new HashMap<>();
-    public File birthdaysYML;
-    public FileConfiguration birthdaysConfig;
+
     @Override
     public void onEnable() {
-        birthdaysYML = new File(getDataFolder()+"/birthdays.yml");
-        birthdaysConfig = YamlConfiguration.loadConfiguration(birthdaysYML);
-        saveYML(birthdaysConfig, birthdaysYML);
         setMonthInfo();
         getCommand("birthday").setExecutor(new BirthdayCommand(this));
         sendMessage(ChatColor.GOLD + "Loading Birthdays!", true);
-        // if birthdays.yml exists
-        // Set birthdays to birthdays.yml length
-        int birthdays = 0;
+
+        Birthdays.setup();
+        Birthdays.get().options().copyDefaults(true);
+        Birthdays.save();
+
+        int birthdays = Birthdays.countBirthdays();
         sendMessage(ChatColor.GOLD + "Found " + ChatColor.DARK_PURPLE + birthdays + ChatColor.GOLD + " Birthdays!", true);
-        // else
-        sendMessage(ChatColor.GOLD + ChatColor.BOLD.toString() + "Birthdays.YML" + ChatColor.GOLD + " not found! Creating one now", true);
     }
 
     @Override
@@ -95,15 +93,5 @@ public final class HappyBirthday extends JavaPlugin {
         daysOfTheMonth.put("October", 31);
         daysOfTheMonth.put("November", 30);
         daysOfTheMonth.put("December", 31);
-    }
-
-    public static void saveYML(FileConfiguration ymlConfig, File ymlfile)
-    {
-        try {
-            ymlConfig.save(ymlfile);
-        } catch (IOException e)
-        {
-            e.printStackTrace();;
-        }
     }
 }
