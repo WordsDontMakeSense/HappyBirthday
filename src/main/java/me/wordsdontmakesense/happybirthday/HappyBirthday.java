@@ -1,20 +1,18 @@
 package me.wordsdontmakesense.happybirthday;
 
 import me.wordsdontmakesense.happybirthday.Commands.BirthdayCommand;
-import me.wordsdontmakesense.happybirthday.Commands.Files.Birthdays;
+import me.wordsdontmakesense.happybirthday.Files.Birthdays;
+import me.wordsdontmakesense.happybirthday.Files.Config;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Date;
 import java.util.HashMap;
 
 public final class HappyBirthday extends JavaPlugin {
+    public static String prefix;
     public static HashMap<Integer, String> months = new HashMap<>();
     public static HashMap<String, Integer> daysOfTheMonth = new HashMap<>();
 
@@ -22,47 +20,55 @@ public final class HappyBirthday extends JavaPlugin {
     public void onEnable() {
         setMonthInfo();
         getCommand("birthday").setExecutor(new BirthdayCommand(this));
-        sendMessage(ChatColor.GOLD + "Loading Birthdays!", true);
+        logMessage(ChatColor.GOLD + "Loading Birthdays!");
 
         Birthdays.setup();
         Birthdays.get().options().copyDefaults(true);
         Birthdays.save();
 
+        Config.setup();
+        Config.get().options().copyDefaults(true);
+        Config.save();
+
+        prefix = Config.get().getString("prefix");
+
         int birthdays = Birthdays.countBirthdays();
-        sendMessage(ChatColor.GOLD + "Found " + ChatColor.DARK_PURPLE + birthdays + ChatColor.GOLD + " Birthdays!", true);
+        logMessage(ChatColor.GOLD + "Found " + ChatColor.DARK_PURPLE + birthdays + ChatColor.GOLD + " Birthdays!");
+
+        int interval = Config.get().getInt("birthdayChatAnnouncementInterval");
+        getServer().getScheduler().scheduleSyncRepeatingTask(this, () -> {
+
+        }, interval, interval);
     }
 
     @Override
     public void onDisable() {
-        sendMessage(ChatColor.GOLD + "Goodbye! :)");
+        logMessage(ChatColor.GOLD + "Goodbye! :)");
+        Birthdays.save();
     }
 
-    public void sendMessage(String message, boolean usePrefix)
-    {
-        String prefix = ChatColor.YELLOW + "[" + ChatColor.GOLD + "Happy" + ChatColor.LIGHT_PURPLE + "Birthday" + ChatColor.YELLOW + "] ";
-        if(!usePrefix)
-        {
-            prefix = "";
-        }
-        Bukkit.getServer().getConsoleSender().sendMessage(prefix + message);
-    }
 
-    public void sendMessage(String message)
+    public void logMessage(String message)
     {
         Bukkit.getServer().getConsoleSender().sendMessage(message);
     }
 
-    public void sendMessage(CommandSender commandSender, String message, boolean usePrefix)
+    public void sendError(String message, boolean usePrefix)
     {
         String prefix = ChatColor.YELLOW + "[" + ChatColor.GOLD + "Happy" + ChatColor.LIGHT_PURPLE + "Birthday" + ChatColor.YELLOW + "] ";
         if(!usePrefix)
         {
             prefix = "";
         }
+        getServer().getConsoleSender().sendMessage(prefix + ChatColor.RED + message);
+    }
+
+    public void sendPrefixedMessage(@NotNull CommandSender commandSender, String message)
+    {
         commandSender.sendMessage(prefix + message);
     }
 
-    public void sendMessage(CommandSender commandSender, String message)
+    public void sendMessage(@NotNull CommandSender commandSender, String message)
     {
         commandSender.sendMessage(message);
     }

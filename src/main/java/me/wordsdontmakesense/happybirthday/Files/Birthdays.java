@@ -1,8 +1,11 @@
-package me.wordsdontmakesense.happybirthday.Commands.Files;
+package me.wordsdontmakesense.happybirthday.Files;
 
+import me.wordsdontmakesense.happybirthday.HappyBirthday;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,6 +13,12 @@ import java.io.IOException;
 public class Birthdays {
     private static File file;
     private static FileConfiguration fileConfig;
+    private static HappyBirthday happyBirthday;
+
+    public Birthdays(HappyBirthday happyBirthday)
+    {
+        this.happyBirthday = happyBirthday;
+    }
 
     public static void setup() {
         file = new File(Bukkit.getServer().getPluginManager().getPlugin("HappyBirthday").getDataFolder(), "birthdays.yml");
@@ -19,8 +28,10 @@ public class Birthdays {
             try {
                 file.createNewFile();
             } catch(IOException e) {
-                System.out.println("Couldn't create birthdays.yml!");
+                happyBirthday.sendError("Couldn't create birthdays.yml!", true);
             }
+        } else {
+            reload();
         }
         fileConfig = YamlConfiguration.loadConfiguration(file);
     }
@@ -36,7 +47,7 @@ public class Birthdays {
             fileConfig.save(file);
         } catch (IOException e)
         {
-            System.out.println("Couldn't save birthdays.yml!");
+            happyBirthday.sendError("Couldn't save birthdays.yml!", true);
         }
     }
 
@@ -50,23 +61,21 @@ public class Birthdays {
         return file.list().length;
     }
 
-    public static String getString(String key)
-    {
-        return fileConfig.getString(key);
-    }
-
-    public static boolean contains(String key)
-    {
-        return fileConfig.contains(key);
-    }
-
     public static void set(String key, int month, int day)
     {
-        fileConfig.set(key, month + "/" + day);
+        if(fileConfig.contains(key))
+            fileConfig.set(key.toLowerCase(), month + "/" + day);
+        else
+            fileConfig.addDefault(key.toLowerCase(), month + "/" + day);
+        save();
     }
 
-    public static void remove(String key)
+    public static void remove(@NotNull CommandSender commandSender, String key)
     {
-        fileConfig.set(key, null);
+        if(fileConfig.contains(key))
+            fileConfig.set(key, null);
+        else
+            happyBirthday.sendPrefixedMessage(commandSender, "There is no birthday stored for " + key + "!");
+        save();
     }
 }

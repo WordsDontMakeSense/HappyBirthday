@@ -1,11 +1,13 @@
 package me.wordsdontmakesense.happybirthday.Commands;
 
-import me.wordsdontmakesense.happybirthday.Commands.Files.Birthdays;
+import me.wordsdontmakesense.happybirthday.Files.Birthdays;
+import me.wordsdontmakesense.happybirthday.Files.Config;
 import me.wordsdontmakesense.happybirthday.HappyBirthday;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 public class BirthdayCommand implements CommandExecutor {
     HappyBirthday happyBirthday;
@@ -20,16 +22,21 @@ public class BirthdayCommand implements CommandExecutor {
         String second = args[1];
         int month = Integer.parseInt(args[2]);
         int day = Integer.parseInt(args[3]);
-        if(first.equalsIgnoreCase("help"))
-            helpMessage(commandSender);
-        else if(first.equalsIgnoreCase("get") && second != "")
-            getBirthday(commandSender, second);
-        else if(first.equalsIgnoreCase("set") && second != "")
-            setBirthday(commandSender, second, month, day);
-        else if(first.equalsIgnoreCase("remove") && second != "")
-            removeBirthday(commandSender, second);
-        else
-            helpMessage(commandSender);
+        if(commandSender.hasPermission(Config.get().getString("permission")) && commandSender instanceof Player)
+        {
+            if(first.equalsIgnoreCase("help"))
+                helpMessage(commandSender);
+            else if(first.equalsIgnoreCase("get") && second != "")
+                getBirthday(commandSender, second);
+            else if(first.equalsIgnoreCase("set") && second != "")
+                setBirthday(commandSender, second, month, day);
+            else if(first.equalsIgnoreCase("remove") && second != "")
+                removeBirthday(commandSender, second);
+            else
+                helpMessage(commandSender);
+        } else {
+            happyBirthday.sendPrefixedMessage(commandSender, "You do not have permission to do that!");
+        }
         return true;
     }
 
@@ -46,13 +53,13 @@ public class BirthdayCommand implements CommandExecutor {
 
     private void getBirthday(CommandSender commandSender, String name)
     {
-        if(Birthdays.contains(name))
+        if(Birthdays.get().contains(name))
         {
-            String playersBirthday = Birthdays.getString(name);
+            String playersBirthday = Birthdays.get().getString(name);
             String[] splitBirthday = playersBirthday.split("/");
-            happyBirthday.sendMessage(commandSender, name + "'s birthday is " + splitBirthday[0] + " " + splitBirthday[1], true);
+            happyBirthday.sendPrefixedMessage(commandSender, name + "'s birthday is " + splitBirthday[0] + " " + splitBirthday[1]);
         } else {
-            happyBirthday.sendMessage(commandSender, name + "'s birthday is not set!", true);
+            happyBirthday.sendPrefixedMessage(commandSender, name + "'s birthday is not set!");
         }
     }
 
@@ -60,15 +67,15 @@ public class BirthdayCommand implements CommandExecutor {
     {
         if(day <= happyBirthday.daysOfTheMonth.get(happyBirthday.months.get(month))) {
             Birthdays.set(playerName, month, day);
-            happyBirthday.sendMessage(commandSender, "Set " + playerName + "'s Birthday to " + happyBirthday.months.get(month) + " " + day + "!");
+            happyBirthday.sendPrefixedMessage(commandSender, "Set " + playerName + "'s Birthday to " + happyBirthday.months.get(month) + " " + day + "!");
         } else {
-            happyBirthday.sendMessage(commandSender, happyBirthday.months.get(month) + " has less than " + day + " days in it!");
+            happyBirthday.sendPrefixedMessage(commandSender, happyBirthday.months.get(month) + " has less than " + day + " days in it!");
         }
     }
 
     private void removeBirthday(CommandSender commandSender, String playerName)
     {
-        Birthdays.remove(playerName);
-        happyBirthday.sendMessage(commandSender, "Removed " + playerName + "'s birthday!");
+        Birthdays.remove(commandSender, playerName);
+        happyBirthday.sendPrefixedMessage(commandSender, "Removed " + playerName + "'s birthday!");
     }
 }
